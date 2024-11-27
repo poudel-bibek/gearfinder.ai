@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 import requests
 import json
+import datetime
 
 # Load environment variables
 load_dotenv()
@@ -22,7 +23,7 @@ def ask_llama(prompt):
     if not api_token or not account_id:
         raise ValueError("Cloudflare credentials not found in .env file")
     
-    url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/@cf/meta/llama-3.1-8b-instruct-fp8"
+    url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/@cf/meta/llama-3.1-8b-instruct-fast" # -fp8 and fast are apparently different models. there is also awq
     
     headers = {
         "Authorization": f"Bearer {api_token}",
@@ -48,15 +49,33 @@ def ask_llama(prompt):
         response = requests.post(url, headers=headers, json=data)
         
         # Print response details for debugging
-        print(f"Status Code: {response.status_code}")
-        print(f"Response Headers: {response.headers}")
-        print(f"Response Body: {response.text}")
+        #print(f"Status Code: {response.status_code}")
+        #print(f"Response Headers: {response.headers}")
+        #print(f"Response Body: {response.text}")
         
         response.raise_for_status()
         
         response_json = response.json()
         if 'result' in response_json:
-            return response_json['result']['response']
+            # Get the response
+            llama_response = response_json['result']['response']
+            
+            # Create a timestamp
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            
+            # Create a dictionary with both query and response
+            save_data = {
+                "query": prompt,
+                "response": llama_response
+            }
+            
+            # Save to JSON file with timestamp
+            filename = f"llama_results_{timestamp}.json"
+            with open(filename, 'w', encoding='utf-8') as f:
+                json.dump(save_data, f, indent=4)
+            
+            print(f"Response saved to {filename}")
+            return llama_response
         else:
             print(f"Unexpected response format: {response_json}")
             return None
