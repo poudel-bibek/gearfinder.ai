@@ -5,21 +5,7 @@ import { Crosshair, Fish, TurtleIcon as Tennis, Tent, Mountain, MountainIcon as 
 import { useState, useEffect } from 'react'
 import ProgressIndicator from './ProgressIndicator'
 import SearchBar from './SearchBar'
-
-const activities = [
-  { name: 'Hunting', icon: Crosshair },
-  { name: 'Fishing', icon: Fish },
-  { name: 'Pickleball', icon: Tennis },
-  { name: 'Camping', icon: Tent },
-  { name: 'Hiking', icon: Hiking },
-  { name: 'Rock Climbing', icon: Mountain },
-  { name: 'Kayaking', icon: Waves },
-  { name: 'Mountain Biking', icon: Bike },
-  { name: 'Skiing', icon: Snowflake },
-  { name: 'Golf', icon: Golf },
-  { name: 'Beach Volleyball', icon: Disc },
-  { name: 'Fitness', icon: Dumbbell },
-]
+import { activityImages } from '../types/model_1';
 
 interface GearItem {
   name: string;
@@ -38,7 +24,11 @@ interface APIResponse {
   }
 }
 
-export default function ActivityTiles() {
+interface ActivityTilesProps {
+  onActivitySelect: (activity: string) => void;
+}
+
+export default function ActivityTiles({ onActivitySelect }: ActivityTilesProps) {
   const [searchState, setSearchState] = useState<'idle' | 'searching'>('idle')
   const [searchResults, setSearchResults] = useState<APIResponse | null>(null)
   const [recentSearches, setRecentSearches] = useState<SearchResult[]>([])
@@ -47,13 +37,17 @@ export default function ActivityTiles() {
     { label: 'Select an activity or search...', isCompleted: false, isLoading: false },
     { label: 'Gathering information...', isCompleted: false, isLoading: false }
   ])
+  const [hoveredTile, setHoveredTile] = useState<string | null>(null);
+  
+  const activities = Object.keys(activityImages);
 
   const handleSearchResults = (data: APIResponse, searchQuery: string) => {
     setSearchResults(data)
+    setSearchState('searching')
     
     // Add to recent searches
     const searchResult: SearchResult = {
-      query: searchQuery,  // Use the actual search query
+      query: searchQuery,
       timestamp: Date.now(),
       results: data.result.response
     }
@@ -116,6 +110,16 @@ export default function ActivityTiles() {
       setSearchState('idle');
     }
   };
+
+  useEffect(() => {
+    if (searchResults && searchState === 'searching') {
+      setSteps(prev => prev.map(step => ({
+        ...step,
+        isCompleted: true,
+        isLoading: false
+      })))
+    }
+  }, [searchResults, searchState])
 
   if (searchState === 'searching') {
     return (
@@ -216,16 +220,34 @@ export default function ActivityTiles() {
             onBack={handleBack}
           />
           
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-4">
-            {activities.map((activity, index) => (
-              <button
-                key={activity.name}
-                onClick={() => handleTileClick(activity.name)}
-                className="p-4 border rounded-lg hover:bg-secondary transition-colors"
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 mt-8">
+            {activities.map((activity) => (
+              <div
+                key={activity}
+                onClick={() => handleTileClick(activity)}
+                onMouseEnter={() => setHoveredTile(activity)}
+                onMouseLeave={() => setHoveredTile(null)}
+                className="relative aspect-[4/3] cursor-pointer overflow-hidden rounded-lg transition-transform duration-300 hover:scale-105 group"
               >
-                <activity.icon className="w-8 h-8 text-green-600 mb-2 group-hover:scale-110 transition-transform duration-300" />
-                <span className="text-sm font-medium text-green-800 text-center">{activity.name}</span>
-              </button>
+                <div 
+                  className="absolute inset-0 bg-gradient-to-b from-transparent via-black/5 to-black/30 z-10"
+                />
+                <img
+                  src={activityImages[activity]}
+                  alt={activity}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute bottom-0 left-0 right-0 p-3 z-20">
+                  <h3 className="text-white text-lg font-medium tracking-wide">
+                    {activity}
+                  </h3>
+                </div>
+                <div 
+                  className={`absolute inset-0 bg-black/0 transition-opacity duration-300 ${
+                    hoveredTile === activity ? 'opacity-0' : 'opacity-100'
+                  }`}
+                />
+              </div>
             ))}
           </div>
         </div>

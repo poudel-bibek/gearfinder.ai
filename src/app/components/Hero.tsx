@@ -4,6 +4,11 @@ import { motion } from 'framer-motion'
 import ActivityTiles from './ActivityTiles'
 
 export default function Hero() {
+  const handleActivitySelect = (activity: string) => {
+    // You can handle the activity selection here if needed
+    console.log('Selected activity:', activity);
+  };
+
   return (
     <section className="relative z-20 min-h-screen">
       <div className="absolute inset-0 bg-gradient-to-b from-green-50/50 to-white pointer-events-none" />
@@ -30,7 +35,7 @@ export default function Hero() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.6 }}
           >
-            <ActivityTiles />
+            <ActivityTiles onActivitySelect={handleActivitySelect} />
           </motion.div>
         </div>
       </div>

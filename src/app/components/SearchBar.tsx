@@ -31,6 +31,14 @@ export default function SearchBar({
   setSteps
 }: SearchBarProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      handleSearch(searchQuery.trim())
+    }
+  }
 
   const handleSearch = async (query: string) => {
     try {
@@ -68,7 +76,9 @@ export default function SearchBar({
         idx === 1 ? { ...step, isLoading: true } : step
       ))
 
-      onSearchResults?.(data, query)
+      if (onSearchResults) {
+        onSearchResults(data, query)
+      }
       
       // Complete all steps
       setSteps(prev => prev.map(step => ({ 
@@ -77,9 +87,7 @@ export default function SearchBar({
         isLoading: false 
       })))
 
-      // Add this line to ensure loading state is properly reset
       setIsLoading(false)
-      onSearchStateChange?.(false)  // Add this line to properly update search state
 
     } catch (error) {
       console.error('Error:', error)
@@ -95,32 +103,25 @@ export default function SearchBar({
 
   return (
     <div className="w-full">
-      <div className="w-full max-w-md mx-auto">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            const input = e.currentTarget.querySelector('input')
-            if (input?.value) {
-              handleSearch(input.value)
-            }
-          }}
-          className="relative flex items-center"
-        >
+      <div className="relative w-full max-w-2xl mx-auto">
+        <form onSubmit={handleSubmit}>
           <input
             type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search for an activity..."
-            className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full px-4 py-3 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.15)] transition-shadow"
             disabled={isLoading}
           />
           <button
             type="submit"
-            className="absolute right-2 p-2 text-gray-500 hover:text-gray-700"
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-green-600 hover:text-green-700 transition-colors"
             disabled={isLoading}
           >
             {isLoading ? (
-              <div className="animate-spin">⟳</div>
+              <div className="animate-spin text-green-600">⟳</div>
             ) : (
-              <Search className="h-4 w-4" />
+              <Search className="h-5 w-5" />
             )}
           </button>
         </form>
