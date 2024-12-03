@@ -3,8 +3,11 @@
 import { motion } from 'framer-motion'
 import SearchBar from './SearchBar'
 import ActivityTiles from './ActivityTiles'
+import { useState } from 'react'
 
 export default function Hero() {
+  const [isSearching, setIsSearching] = useState(false)
+
   return (
     <section className="relative z-20 min-h-screen">
       <div className="absolute inset-0 bg-gradient-to-b from-green-50/50 to-white pointer-events-none" />
@@ -32,15 +35,17 @@ export default function Hero() {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="mb-16"
           >
-            <SearchBar />
+            <SearchBar onSearchStateChange={setIsSearching} />
           </motion.div>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-          >
-            <ActivityTiles />
-          </motion.div>
+          {!isSearching && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+            >
+              <ActivityTiles />
+            </motion.div>
+          )}
         </div>
       </div>
     </section>
