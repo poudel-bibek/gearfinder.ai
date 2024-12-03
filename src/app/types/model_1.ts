@@ -7,4 +7,11 @@ export interface Model1Response {
 export interface GearItem {
   name: string;
   description: string;
+}
+
+export interface APIResponse {
+  result: {
+    response: Record<string, GearItem>;
+  };
+  query?: string;
 } 
